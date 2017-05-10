@@ -40,12 +40,12 @@ channel: is 0 for the first GPIO, 1 for the second, etc.
          number of steps.
 """
 
-FREQ=100 # The PWM cycles per second.
+FREQ=500 # The PWM cycles per second.
 
-PWM1=4
-PWM2=14
-PWM3=15
-PWM4=18
+PWM1=12
+PWM2=16
+PWM3=20
+PWM4=21
 
 GPIO=[PWM1, PWM2, PWM3, PWM4]
 
@@ -107,19 +107,48 @@ if not pi.connected:
 for g in GPIO:
    pi.set_mode(g, pigpio.OUTPUT)
 
-for i in range(_micros):
+#for i in range(_micros):
 
-   #set_dc(0, i)
-   #set_dc(1, i+(_micros/4))
-   #set_dc(2, (_micros/4)-i)
-   #set_dc(3, _micros-i)
+#set_dc(0, i)
+#set_dc(1, i+(_micros/4))
+#set_dc(2, (_micros/4)-i)
+#set_dc(3, _micros-i)
 
-   #set_dc(0, _micros*0.2)
-   #set_dc(1, _micros*0.4)
-   set_dc(2, _micros*0.4)
-   set_dc(3, _micros*0.6)
+def calibrate():
+   for i in range(4):
+      print('Calibrating ESC ' + str(i) + '\n')
 
-   time.sleep(0.1)
+      set_dc(i, _micros*0.5)
+      print('dc is now set to neutral...\n')
+      
+      raw_input('Press enter to set to forward...\n')
+      for j in range(200):
+         set_dc(i, _micros*(0.5+j*0.2/200))
+         time.sleep(0.001)
+         
+      raw_input('Press enter to set to backward...\n')
+      for j in range(400):
+         set_dc(i, _micros*(0.7-j*0.2/200))
+         time.sleep(0.001)
+         
+      raw_input('DONE. Press enter to continue...\n')
+      set_dc(i, _micros*0.4)
+
+#dc = 0.08
+#def run(dc):
+
+#calibrate()
+
+while True:
+   #for i in range(4):
+   #dc = 0.5
+   #set_dc(i, _micros*dc)
+   set_dc(0, _micros*0.0) #back
+   set_dc(1, _micros*0.0) #left
+   set_dc(2, _micros*0.50) #right
+   set_dc(3, _micros*0.50) #front
+   
+   time.sleep(3)
 
 pi.wave_tx_stop()
 
@@ -127,3 +156,7 @@ if old_wid is not None:
    pi.wave_delete(old_wid)
 
 pi.stop()
+
+#calibrate()
+#run(0.4)
+#stop()
